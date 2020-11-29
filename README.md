@@ -6,6 +6,28 @@ netftp 是对 \[apache common net\] \[ftp4j\] \[jsch\] 等 ftp 客户端组件�
 
 
 
+# 安装
+
+## -> maven
+
+```xml
+<dependency>
+  <groupId>io.github.ludongrong</groupId>
+  <artifactId>netftp</artifactId>
+  <version>1.1.1</version>
+</dependency>
+```
+
+
+
+## -> Gradle
+
+```
+compile 'io.github.ludongrong:netftp:1.1.1'
+```
+
+
+
 # 简单使用
 
 ## -> 构建 ftpConfig
@@ -198,8 +220,8 @@ watcher.hit(true);
 
 - 在Gitee或者Github上fork项目到自己的repo
 - 把fork过去的项目也就是你的项目clone到你的本地
-- 修改代码（记得一定要修改v5-dev分支）
-- commit后push到自己的库（v5-dev分支）
+- 修改代码（记得一定要修改develop分支）
+- commit后push到自己的库（develop分支）
 - 登录Gitee或Github在你首页可以看到一个 pull request 按钮，点击它，填写一些说明信息，然后提交即可。
 - 等待维护者合并
 
