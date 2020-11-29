@@ -158,6 +158,40 @@ watcher.hit(true);
 
 
 
+## -> 其他
+
+我们通过 “删除某目录下某文件”、“删除过期文件” 例子，看出虽然实现功能不同，但是只是变换了 Filter 和 Action。因此，我们可以通过变换 Filter 和 Action 来达到我们想要的功能。
+
+内置 Filter ：
+
+- DirectoryFiler（目录过滤器）
+- FileFiler（文件名过滤器）
+- FileModifyTimeFilter（文件最后修改时间过滤器）
+- TagFilter（标签过滤器）
+
+内置 Action ：
+
+- DeleteAction（删除远程文件）
+- MoveAction（迁移远程文件）
+- DownloadAction（下载远程文件到本地）
+- TagAction（在本地创建文件标签，配置 TagFilter 实现标签过滤）
+
+比如第一次删除远程文件后，第二次将不再删除如何写呢？
+
+```
+Watched watched = new Watched(new Filter[] {
+    new FileFiler("*0.csv", true), 
+    new TagFilter("c:/test", false),
+    new DeleteAction(),
+    new TagAction("c:/test")});
+
+DirectoryWatcher watcher = new DirectoryWatcher(ftpConfig, "/test");
+watcher.addObserver(watched);
+watcher.hit(true);
+```
+
+
+
 # 添砖加瓦
 
 ## -> 贡献代码的步骤
