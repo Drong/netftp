@@ -45,8 +45,8 @@ public class JschFtper extends AbstsactFtper {
     }
 
     /**
-     * @inheritDoc
-     */
+    * @see io.github.ludongrong.netftp.AbstsactFtper#ls(java.lang.String)
+    */
     protected List<FtperFile> ls(String dst) throws LsException {
 
         LSES lses = new LSES();

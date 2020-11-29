@@ -396,13 +396,15 @@ public abstract class AbstsactFtper implements IFtper {
      *            文件
      * @param dst
      *            目录路径
-     * @param dname文件名
+     * @param dname
+     *            文件名
      * @return 操作结果。true表示成功；false表示失败
      */
     protected abstract boolean rename(FtperFile matchFile, String dst, String dname);
 
     /**
-     * @see io.github.ludongrong.netftp.IFtper#move(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+     * @see io.github.ludongrong.netftp.IFtper#move(java.lang.String, java.lang.String, java.lang.String,
+     *      java.lang.String)
      */
     @Override
     public boolean move(String src, String sname, String dst, String dname) {
