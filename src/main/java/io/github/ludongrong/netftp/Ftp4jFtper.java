@@ -247,7 +247,8 @@ public class Ftp4jFtper extends AbstsactFtper {
     }
 
     /**
-     * @see io.github.ludongrong.netftp.AbstsactFtper#rename(io.github.ludongrong.netftp.FtperFile, java.lang.String, java.lang.String)
+     * @see io.github.ludongrong.netftp.AbstsactFtper#rename(io.github.ludongrong.netftp.FtperFile, java.lang.String,
+     *      java.lang.String)
      */
     @Override
     protected boolean rename(FtperFile matchFile, String dst, String dname) {
@@ -406,6 +407,11 @@ public class Ftp4jFtper extends AbstsactFtper {
 
             // 文件类型
             ftpClient.setType(fileType);
+
+            // 设置字符集
+            if (ftperConfig.getFencoding() != null) {
+                ftpClient.setCharset(ftperConfig.getFencoding());
+            }
 
             ftpClient.setAutoNoopTimeout(30000);
             ftpClient.getConnector().setReadTimeout(ftperConfig.getTimeout() * 1000);

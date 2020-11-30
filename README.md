@@ -1,8 +1,9 @@
 # 介绍
 
-netftp 是对 \[apache common net\] \[ftp4j\] \[jsch\] 等 ftp 客户端组件的整理。把在项目中常用的上传、下载、迁移等操作做了包装。简化 ftp 操作代码。
+netftp 是对 \[apache common net\]、 [ftp4j](https://github.com/asbachb/ftp4j) 、\[jsch\] 等 ftp 客户端组件的整理。把在项目中常用的上传、下载、迁移等操作做了包装。简化 ftp 操作代码。
 
 支持 sftp、ftp、ftps。
+
 
 
 
@@ -218,7 +219,7 @@ watcher.hit(true);
 
 ## -> 贡献代码的步骤
 
-- 在Gitee或者Github上fork项目到自己的repo
+- 在 Github 上fork项目到自己的repo
 - 把fork过去的项目也就是你的项目clone到你的本地
 - 修改代码（记得一定要修改develop分支）
 - commit后push到自己的库（develop分支）

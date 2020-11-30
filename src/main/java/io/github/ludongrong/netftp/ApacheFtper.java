@@ -60,7 +60,7 @@ public class ApacheFtper extends AbstsactFtper {
 
         String fnameEncoding;
         try {
-            fnameEncoding = new String(dst.getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            fnameEncoding = new String(dst.getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e1) {
             return flist;
         }
@@ -73,7 +73,7 @@ public class ApacheFtper extends AbstsactFtper {
                     continue;
                 }
 
-                byte[] buf = ftpFile.getName().getBytes(FTP.DEFAULT_CONTROL_ENCODING);
+                byte[] buf = ftpFile.getName().getBytes(ftpClient.getControlEncoding());
                 String name = new String(buf, CharsetUtil.UTF_8);
 
                 FtperFile resfile = new FtperFile();
@@ -182,7 +182,7 @@ public class ApacheFtper extends AbstsactFtper {
     protected boolean changeWorkingDirectory(String dst) {
         String fnameEncoding;
         try {
-            fnameEncoding = new String(dst.getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            fnameEncoding = new String(dst.getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e1) {
             return false;
         }
@@ -203,7 +203,7 @@ public class ApacheFtper extends AbstsactFtper {
     protected boolean mkdir(String fname) {
         String fnameEncoding;
         try {
-            fnameEncoding = new String(fname.getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            fnameEncoding = new String(fname.getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e1) {
             return false;
         }
@@ -224,7 +224,7 @@ public class ApacheFtper extends AbstsactFtper {
     protected boolean rmdir(String fname) {
         String fnameEncoding;
         try {
-            fnameEncoding = new String(fname.getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            fnameEncoding = new String(fname.getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e1) {
             return false;
         }
@@ -247,7 +247,7 @@ public class ApacheFtper extends AbstsactFtper {
     protected boolean rm(String fname) {
         String fnameEncoding;
         try {
-            fnameEncoding = new String(fname.getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            fnameEncoding = new String(fname.getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e1) {
             return false;
         }
@@ -273,14 +273,16 @@ public class ApacheFtper extends AbstsactFtper {
 
         String fnameEncoding;
         try {
-            fnameEncoding = new String(FtperFile.getAbsolutePath(dst, fname).getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            fnameEncoding =
+                new String(FtperFile.getAbsolutePath(dst, fname).getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e) {
             return false;
         }
 
         String pnameEncoding;
         try {
-            pnameEncoding = new String(FtperFile.getAbsolutePath(dst, pname).getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            pnameEncoding =
+                new String(FtperFile.getAbsolutePath(dst, pname).getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e1) {
             return false;
         }
@@ -308,7 +310,7 @@ public class ApacheFtper extends AbstsactFtper {
 
         String srcEncoding;
         try {
-            srcEncoding = new String(matchFile.getAbsolutePath().getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            srcEncoding = new String(matchFile.getAbsolutePath().getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e) {
             return false;
         }
@@ -325,21 +327,22 @@ public class ApacheFtper extends AbstsactFtper {
     }
 
     /**
-     * @see io.github.ludongrong.netftp.AbstsactFtper#rename(io.github.ludongrong.netftp.FtperFile, java.lang.String, java.lang.String)
+     * @see io.github.ludongrong.netftp.AbstsactFtper#rename(io.github.ludongrong.netftp.FtperFile, java.lang.String,
+     *      java.lang.String)
      */
     @Override
     protected boolean rename(FtperFile matchFile, String dst, String dname) {
 
         String srcEncoding;
         try {
-            srcEncoding = new String(matchFile.getAbsolutePath().getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            srcEncoding = new String(matchFile.getAbsolutePath().getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e) {
             return false;
         }
 
         String dstEncoding;
         try {
-            dstEncoding = new String(FtperFile.getAbsolutePath(dst, dname).getBytes(), FTP.DEFAULT_CONTROL_ENCODING);
+            dstEncoding = new String(FtperFile.getAbsolutePath(dst, dname).getBytes(), ftpClient.getControlEncoding());
         } catch (UnsupportedEncodingException e) {
             return false;
         }
@@ -579,6 +582,11 @@ public class ApacheFtper extends AbstsactFtper {
 
             // 设置文件类型（二进制）
             setFileType(ftpClient, ftperConfig);
+
+            // 设置字符集
+            if (ftperConfig.getFencoding() != null) {
+                ftpClient.setControlEncoding(ftperConfig.getFencoding());
+            }
 
             ftpClient.setControlKeepAliveTimeout(30);
             ftpClient.setControlKeepAliveReplyTimeout(ftperConfig.getTimeout() * 1000);
