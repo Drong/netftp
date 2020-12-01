@@ -115,6 +115,21 @@ ftper.delete("/test", "dir1");
 
 
 
+### -> 搬运
+
+把 A 服务器上的文件搬运到 B 服务器上。
+
+```java
+IFtper receiveFtper = FtperFactory.createFtper(fBuilder.build());
+receiveFtper.upload("/test", "1.csv", new ByteArrayInputStream("test".getBytes()));
+
+IFtper sendFtper = ftper.cloneFtper();
+
+receiveFtper.carry(sendFtper, "/test", "1.csv", "/test", "2.csv");
+```
+
+
+
 # 扩展
 
 在实际项目应用当中， ftp 的操作往往是批量操作且带有操作的前置条件。换句话讲不是简单进行一次上传、下载、迁移等操作。比如删除远程某目录下w开头的文件、再比如把远程某目录下的某某文件迁移到某目录下，然后再下载该文件等。

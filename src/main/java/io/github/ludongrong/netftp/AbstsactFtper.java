@@ -1,13 +1,23 @@
 package io.github.ludongrong.netftp;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.net.ftp.FTPFile;
 
+import cn.hutool.core.util.StrUtil;
+import io.github.ludongrong.netftp.carry.Receiver;
+import io.github.ludongrong.netftp.carry.Sender;
 import io.github.ludongrong.netftp.util.LogHelper;
 import io.github.ludongrong.netftp.util.PathHelper;
 
@@ -455,6 +465,48 @@ public abstract class AbstsactFtper implements IFtper {
     }
 
     /**
+     * @see io.github.ludongrong.netftp.IFtper#carry(io.github.ludongrong.netftp.IFtper, java.lang.String,
+     *      java.lang.String, java.lang.String, java.lang.String)
+     */
+    @Override
+    public boolean carry(IFtper ftper, String src, String sname, String dest, String dname) {
+
+        if (ftper == null) {
+            throw new IllegalArgumentException(">>>eee>>> Ftper must not null");
+        } else if (equals(ftper)) {
+            throw new IllegalArgumentException(">>>eee>>> Receive Ftper must not equals send Ftper");
+        }
+        
+        Receiver receiver = new Receiver(this, src, sname);
+        Sender sender = new Sender(ftper, dest, dname);
+
+        try {
+            receiver.getOut().connect(sender.getIn());
+        } catch (IOException e) {
+            return false;
+        }
+
+        boolean res = false;
+
+        CompletionService<Boolean> completionService =
+            new ExecutorCompletionService<Boolean>(Executors.newFixedThreadPool(1));
+        Future<Boolean> future = completionService.submit(sender);
+
+        res = receiver.call();
+        if (res == false) {
+            return res;
+        }
+
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            LogHelper.getLog().error("[{}]>>>>[{}]", ftper.getHost(), FtperFile.getAbsolutePath(dest, dname), e);
+        }
+
+        return false;
+    }
+
+    /**
      * @see io.github.ludongrong.netftp.IFtper#getHost()
      */
     @Override
@@ -476,5 +528,44 @@ public abstract class AbstsactFtper implements IFtper {
     @Override
     public String getUsername() {
         return ftperConfig.getUsername();
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+
+        StringBuilder str = new StringBuilder();
+        str.append(Optional.ofNullable(getUsername()).orElse("0")).append(String.valueOf(getPort()))
+            .append(Optional.ofNullable(getUsername()).orElse("0"));
+        return str.toString().hashCode();
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof ApacheFtper) {
+            ApacheFtper apacheFtper = (ApacheFtper)obj;
+            if (StrUtil.compare(getHost(), apacheFtper.getHost(), true) != 0) {
+                return false;
+            }
+            if (getPort() != apacheFtper.getPort()) {
+                return false;
+            }
+            if (StrUtil.compare(getUsername(), apacheFtper.getUsername(), true) != 0) {
+                return false;
+            }
+            return true;
+        }
+
+        return false;
     }
 }

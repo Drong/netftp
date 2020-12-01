@@ -2,7 +2,7 @@
 <suite name="Suite" parallel="false">
   <test name="Test">
     <classes>
-      <class name="org.mpro.netftp.test.WatcherTest"/>
+      <class name="org.mpro.netftp.test.CarrierTest"/>
     </classes>
   </test> <!-- Test -->
 </suite> <!-- Suite -->

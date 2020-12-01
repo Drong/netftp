@@ -125,4 +125,35 @@ public interface IFtper {
      * @return ftp客户端
      */
     IFtper cloneFtper();
+
+    /**
+     * 搬运.
+     * 
+     * <p>
+     * 把 A 服务器上的文件搬运到 B 服务器上.
+     * 
+     * <p>
+     * 
+     * <pre>
+     * {
+     *     &#64;code
+     *     IFtper ftperA = FtperFactory.createFtper(ftperConfigA.build());
+     *     IFtper ftperB = FtperFactory.createFtper(ftperConfigB.build());
+     *     ftperA.carry(ftperB, "/test", "1.csv", "/test", "2.csv");
+     * }
+     * </pre>
+     *
+     * @param ftper
+     *            目标客户端
+     * @param src
+     *            源服务器的目录
+     * @param sname
+     *            源服务器的文件名
+     * @param dest
+     *            目标服务器的目录
+     * @param dname
+     *            目标服务器的文件名
+     * @return 操作结果。true表示成功；false表示失败
+     */
+    boolean carry(IFtper ftper, String src, String sname, String dest, String dname);
 }

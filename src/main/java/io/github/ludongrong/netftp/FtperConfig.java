@@ -317,6 +317,11 @@ public class FtperConfig implements Serializable {
                 }
             }
 
+            // ftp/ftps 协议，默认类似是 apache common
+            if (ftperConfig.getType() == null) {
+                ftperConfig.setType(TypeEnum.apache_common);
+            }
+
             return ftperConfig;
         }
     }

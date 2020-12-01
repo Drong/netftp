@@ -176,7 +176,8 @@ public class WatcheParam implements Serializable, IFtper {
     }
 
     /**
-     * @see io.github.ludongrong.netftp.IFtper#move(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+     * @see io.github.ludongrong.netftp.IFtper#move(java.lang.String, java.lang.String, java.lang.String,
+     *      java.lang.String)
      */
     @Override
     public boolean move(String src, String sname, String dst, String dname) {
@@ -205,5 +206,14 @@ public class WatcheParam implements Serializable, IFtper {
     @Override
     public IFtper cloneFtper() {
         return ftper.cloneFtper();
+    }
+
+    /**
+     * @see io.github.ludongrong.netftp.IFtper#carry(io.github.ludongrong.netftp.IFtper, java.lang.String,
+     *      java.lang.String, java.lang.String, java.lang.String)
+     */
+    @Override
+    public boolean carry(IFtper ftper, String src, String sname, String dest, String dname) {
+        return ftper.carry(ftper, src, sname, dest, dname);
     }
 }
