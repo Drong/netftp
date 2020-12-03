@@ -14,9 +14,6 @@ public class LogHelper {
     private static final Log log = LogFactory.get("netftp");
 
     /**
-     * 
-     */
-    /**
      * 获取日志对象.
      *
      * @return 日志对象

@@ -29,9 +29,11 @@ compile 'io.github.ludongrong:netftp:1.1.1'
 
 
 
-# 简单使用
+# 使用步骤
 
 ## -> 构建 ftpConfig
+
+ftpConfig 是 ftper 的配置类。必须配置 Host（地址）、Port（端口）、Username（用户名）、Password（密码）、Protocol（协议）。ftp 协议默认被动模式。
 
 ### -> ftp 协议（被动模式）
 
@@ -40,7 +42,6 @@ FtperConfig ftperConfig = FtperConfig.withHost("127.0.0.1")
     .withPort(21)
     .withUsername("1")
     .withPassword("1")
-    .withPasvMode(true)
     .withProtocol(FtperConfig.ProtocolEnum.ftp)
     .build();
 ```
@@ -54,7 +55,7 @@ FtperConfig ftperConfig = FtperConfig.withHost("127.0.0.1")
     .withPort(21)
     .withUsername("1")
     .withPassword("1")
-    .withPasvMode(true)
+    .withPasvMode(false)
     .withProtocol(FtperConfig.ProtocolEnum.ftp)
     .build();
 ```
@@ -68,7 +69,6 @@ FtperConfig ftperConfig = FtperConfig.withHost("127.0.0.1")
     .withPort(21)
     .withUsername("1")
     .withPassword("1")
-    .withPasvMode(true)
     .withProtocol(FtperConfig.ProtocolEnum.ftps)
     .build();
 ```
@@ -107,6 +107,11 @@ ftper.upload("/test/dir2", "test.csv", byteis);
 ftper.down("/test/dir2", "test.csv", byteos));
 // 迁移
 ftper.move("/test/dir2", "test.csv", "/test/dir1", "test.txt");
+```
+
+### -> 删除
+
+```java
 // 删除文件
 ftper.delete("/test/dir1", "test.txt");
 // 删除目录
@@ -117,14 +122,13 @@ ftper.delete("/test", "dir1");
 
 ### -> 搬运
 
-把 A 服务器上的文件搬运到 B 服务器上。
+把 A 服务器上的文件搬运到 B 服务器上。A 与 B 不能是同个服务。
 
 ```java
-IFtper receiveFtper = FtperFactory.createFtper(fBuilder.build());
+IFtper receiveFtper = FtperFactory.createFtper(receiveConfig);
 receiveFtper.upload("/test", "1.csv", new ByteArrayInputStream("test".getBytes()));
 
-IFtper sendFtper = ftper.cloneFtper();
-
+IFtper sendFtper = FtperFactory.createFtper(sendConfig);;
 receiveFtper.carry(sendFtper, "/test", "1.csv", "/test", "2.csv");
 ```
 
