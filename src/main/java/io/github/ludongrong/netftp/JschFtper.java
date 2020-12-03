@@ -2,6 +2,7 @@ package io.github.ludongrong.netftp;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -45,8 +46,8 @@ public class JschFtper extends AbstsactFtper {
     }
 
     /**
-    * @see io.github.ludongrong.netftp.AbstsactFtper#ls(java.lang.String)
-    */
+     * @see io.github.ludongrong.netftp.AbstsactFtper#ls(java.lang.String)
+     */
     protected List<FtperFile> ls(String dst) throws LsException {
 
         LSES lses = new LSES();
@@ -227,7 +228,8 @@ public class JschFtper extends AbstsactFtper {
     }
 
     /**
-     * @see io.github.ludongrong.netftp.AbstsactFtper#rename(io.github.ludongrong.netftp.FtperFile, java.lang.String, java.lang.String)
+     * @see io.github.ludongrong.netftp.AbstsactFtper#rename(io.github.ludongrong.netftp.FtperFile, java.lang.String,
+     *      java.lang.String)
      */
     @Override
     protected boolean rename(FtperFile matchFile, String dst, String dname) {
@@ -286,7 +288,7 @@ public class JschFtper extends AbstsactFtper {
          *            配置
          * @return 客户端
          */
-        public JschFtper build(FtperConfig ftperConfig) {
+        public JschFtper build(FtperConfig ftperConfig) throws FtperException {
 
             Properties conf = new Properties();
             conf.put("StrictHostKeyChecking", "no");
@@ -310,8 +312,8 @@ public class JschFtper extends AbstsactFtper {
                 if (null != session) {
                     session.disconnect();
                 }
-                throw new IllegalArgumentException(
-                    "FTP host[" + ftperConfig.getHost() + "] user[" + ftperConfig.getUsername() + "] ", e);
+                throw new FtperException(FtperException.CONNECT_CODE, MessageFormat
+                    .format(FtperException.CONNECT_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
             }
         }
     }
@@ -320,7 +322,7 @@ public class JschFtper extends AbstsactFtper {
      * @see io.github.ludongrong.netftp.IFtper#cloneFtper()
      */
     @Override
-    public IFtper cloneFtper() {
+    public IFtper cloneFtper() throws FtperException {
         return new Builder().build(ftperConfig);
     }
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -158,21 +159,6 @@ public class ApacheFtper extends AbstsactFtper {
         }
 
         return proccesser;
-    }
-
-    /**
-     * @see io.github.ludongrong.netftp.AbstsactFtper#listFile(java.lang.String)
-     */
-    @Override
-    public List<FtperFile> listFile(String dst) {
-
-        PathHelper.check(dst);
-
-        try {
-            return ls(dst);
-        } catch (LsException e) {
-            return null;
-        }
     }
 
     /**
@@ -427,17 +413,23 @@ public class ApacheFtper extends AbstsactFtper {
          *            客户端
          * @param ftperConfig
          *            配置
+         * @throws FtperException
+         *             初始化客户端异常
          */
-        private void setFileType(FTPClient ftpClient, FtperConfig ftperConfig) {
+        private void setFileType(FTPClient ftpClient, FtperConfig ftperConfig) throws FtperException {
+            boolean res;
             try {
-                boolean res = ftpClient.setFileType(fileType);
-                if (!res) {
-                    close(ftpClient);
-                    throw new IllegalArgumentException(tip(ftperConfig) + " set binary fail !");
-                }
+                res = ftpClient.setFileType(fileType);
             } catch (Exception e) {
                 close(ftpClient);
-                throw new IllegalArgumentException(tip(ftperConfig) + " set binary exception !", e);
+                throw new FtperException(FtperException.CONFIG_CODE, MessageFormat
+                    .format(FtperException.CONFIG_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
+            }
+
+            if (!res) {
+                close(ftpClient);
+                throw new FtperException(FtperException.CONFIG_CODE, MessageFormat
+                    .format(FtperException.CONFIG_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
             }
         }
 
@@ -448,17 +440,75 @@ public class ApacheFtper extends AbstsactFtper {
          *            客户端
          * @param ftperConfig
          *            配置
+         * @throws FtperException
+         *             初始化客户端异常
          */
-        private void setFileTransferMode(FTPClient ftpClient, FtperConfig ftperConfig) {
+        private void setFileTransferMode(FTPClient ftpClient, FtperConfig ftperConfig) throws FtperException {
+            boolean res;
             try {
-                boolean transferModel = ftpClient.setFileTransferMode(FTPClient.STREAM_TRANSFER_MODE);
-                if (!transferModel) {
-                    close(ftpClient);
-                    throw new IllegalArgumentException(tip(ftperConfig) + " transfer mode fail !");
-                }
+                res = ftpClient.setFileTransferMode(FTPClient.STREAM_TRANSFER_MODE);
             } catch (Exception e) {
                 close(ftpClient);
-                throw new IllegalArgumentException(tip(ftperConfig) + " transfer mode exception !", e);
+                throw new FtperException(FtperException.CONFIG_CODE, MessageFormat
+                    .format(FtperException.CONFIG_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
+            }
+
+            if (!res) {
+                close(ftpClient);
+                throw new FtperException(FtperException.CONFIG_CODE, MessageFormat
+                    .format(FtperException.CONFIG_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
+            }
+        }
+
+        /**
+         * 连接.
+         *
+         * @param ftpClient
+         *            客户端
+         * @param ftperConfig
+         *            配置
+         * @throws FtperException
+         *             初始化客户端异常
+         */
+        private void connect(FTPClient ftpClient, FtperConfig ftperConfig) throws FtperException {
+            try {
+                ftpClient.connect(ftperConfig.getHost(), ftperConfig.getPort());
+            } catch (Exception e) {
+                throw new FtperException(FtperException.CONNECT_CODE, MessageFormat
+                    .format(FtperException.CONNECT_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
+            }
+
+            if (FTPReply.isPositiveCompletion(ftpClient.getReplyCode()) == false) {
+                close(ftpClient);
+                throw new FtperException(FtperException.CONNECT_CODE, MessageFormat
+                    .format(FtperException.CONNECT_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
+            }
+        }
+
+        /**
+         * 登录.
+         *
+         * @param ftpClient
+         *            客户端
+         * @param ftperConfig
+         *            配置
+         * @throws FtperException
+         *             初始化客户端异常
+         */
+        private void login(FTPClient ftpClient, FtperConfig ftperConfig) throws FtperException {
+            boolean login;
+            try {
+                login = ftpClient.login(ftperConfig.getUsername(), ftperConfig.getPassword());
+            } catch (Exception e) {
+                close(ftpClient);
+                throw new FtperException(FtperException.LOGIN_CODE, MessageFormat
+                    .format(FtperException.LOGIN_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
+            }
+
+            if (!login) {
+                close(ftpClient);
+                throw new FtperException(FtperException.LOGIN_CODE, MessageFormat
+                    .format(FtperException.LOGIN_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
             }
         }
 
@@ -468,35 +518,16 @@ public class ApacheFtper extends AbstsactFtper {
          * @param ftperConfig
          *            配置
          * @return ftp 客户端
+         * @throws FtperException
+         *             初始化客户端异常
          */
-        private FTPClient createFtpClient(FtperConfig ftperConfig) {
+        private FTPClient createFtpClient(FtperConfig ftperConfig) throws FtperException {
 
             FTPClient ftpClient = new FTPClient();
 
-            try {
-                ftpClient.connect(ftperConfig.getHost(), ftperConfig.getPort());
-            } catch (Exception e) {
-                throw new IllegalStateException(tip(ftperConfig) + " connect fail.", e);
-            }
+            connect(ftpClient, ftperConfig);
 
-            // 未连接
-            if (FTPReply.isPositiveCompletion(ftpClient.getReplyCode()) == false) {
-                close(ftpClient);
-                throw new IllegalStateException(tip(ftperConfig) + "Not Connect");
-            }
-
-            boolean login;
-            try {
-                login = ftpClient.login(ftperConfig.getUsername(), ftperConfig.getPassword());
-            } catch (Exception e) {
-                close(ftpClient);
-                throw new IllegalStateException(tip(ftperConfig) + " login exception !", e);
-            }
-
-            if (!login) {
-                close(ftpClient);
-                throw new IllegalStateException(tip(ftperConfig) + " login fail !");
-            }
+            login(ftpClient, ftperConfig);
 
             return ftpClient;
         }
@@ -507,36 +538,17 @@ public class ApacheFtper extends AbstsactFtper {
          * @param ftperConfig
          *            配置
          * @return ftps 客户端
+         * @throws FtperException
+         *             初始化客户端异常
          */
-        private FTPSClient createFtpsClient(FtperConfig ftperConfig) {
+        private FTPSClient createFtpsClient(FtperConfig ftperConfig) throws FtperException {
 
             FTPSClient ftpsClient = new FTPSClient(true);
             ftpsClient.setTrustManager(TrustManagerUtils.getAcceptAllTrustManager());
 
-            try {
-                ftpsClient.connect(ftperConfig.getHost(), ftperConfig.getPort());
-            } catch (Exception e) {
-                throw new IllegalStateException(tip(ftperConfig) + " connect fail.", e);
-            }
+            connect(ftpsClient, ftperConfig);
 
-            // 未连接
-            if (FTPReply.isPositiveCompletion(ftpsClient.getReplyCode()) == false) {
-                close(ftpsClient);
-                throw new IllegalStateException(tip(ftperConfig) + "Not Connect");
-            }
-
-            boolean login;
-            try {
-                login = ftpsClient.login(ftperConfig.getUsername(), ftperConfig.getPassword());
-            } catch (Exception e) {
-                close(ftpsClient);
-                throw new IllegalStateException(tip(ftperConfig) + " login exception !", e);
-            }
-
-            if (!login) {
-                close(ftpsClient);
-                throw new IllegalStateException(tip(ftperConfig) + " login fail !");
-            }
+            login(ftpsClient, ftperConfig);
 
             try {
                 // Set protection buffer size
@@ -544,7 +556,8 @@ public class ApacheFtper extends AbstsactFtper {
                 // Set data channel protection to private
                 ftpsClient.execPROT("P");
             } catch (IOException e) {
-                throw new IllegalStateException(tip(ftperConfig) + " execPROT fail !");
+                throw new FtperException(FtperException.CONFIG_CODE, MessageFormat
+                    .format(FtperException.CONFIG_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
             }
 
             return ftpsClient;
@@ -556,8 +569,10 @@ public class ApacheFtper extends AbstsactFtper {
          * @param ftperConfig
          *            配置
          * @return 客户端
+         * @throws FtperException
+         *             初始化客户端异常
          */
-        public ApacheFtper build(FtperConfig ftperConfig) {
+        public ApacheFtper build(FtperConfig ftperConfig) throws FtperException {
 
             FTPClient ftpClient = null;
 
@@ -593,24 +608,13 @@ public class ApacheFtper extends AbstsactFtper {
 
             return new ApacheFtper(ftpClient, ftperConfig);
         }
-
-        /**
-         * 日志.
-         *
-         * @param ftperConfig
-         *            配置
-         * @return 日志
-         */
-        private String tip(FtperConfig ftperConfig) {
-            return "FTP host[" + ftperConfig.getHost() + "] user[" + ftperConfig.getUsername() + "] ";
-        }
     }
 
     /**
      * @see io.github.ludongrong.netftp.IFtper#cloneFtper()
      */
     @Override
-    public ApacheFtper cloneFtper() {
+    public ApacheFtper cloneFtper() throws FtperException {
         return new Builder().build(ftperConfig);
     }
 }

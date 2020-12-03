@@ -1,11 +1,13 @@
 package io.github.ludongrong.netftp.watche;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.List;
 
+import io.github.ludongrong.netftp.FtperException;
 import io.github.ludongrong.netftp.FtperFile;
 import io.github.ludongrong.netftp.IFtper;
 import lombok.Getter;
@@ -196,7 +198,7 @@ public class WatcheParam implements Serializable, IFtper {
      * @see io.github.ludongrong.netftp.IFtper#close()
      */
     @Override
-    public void close() {
+    public void close() throws IOException {
         ftper.close();
     }
 
@@ -204,7 +206,7 @@ public class WatcheParam implements Serializable, IFtper {
      * @see io.github.ludongrong.netftp.IFtper#cloneFtper()
      */
     @Override
-    public IFtper cloneFtper() {
+    public IFtper cloneFtper() throws FtperException {
         return ftper.cloneFtper();
     }
 

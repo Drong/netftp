@@ -1,7 +1,9 @@
 package io.github.ludongrong.netftp;
 
 import java.io.Serializable;
+import java.text.MessageFormat;
 
+import io.github.ludongrong.netftp.util.TipHelper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -83,6 +85,36 @@ public class FtperConfig implements Serializable {
     @Getter
     @Setter
     private int timeout;
+
+    /**
+     * 活体检测.
+     * 
+     * <p>
+     * 返回结果数组{@code return new String[] {"0", "alive"}}}，第一个表示状态，第二个表示状态描述.
+     *
+     * @return [状态, 状态描述]
+     */
+    public String[] checkAlive(String directory) {
+
+        IFtper ftper = null;
+        try {
+            ftper = FtperFactory.createFtper(this);
+
+            String[] rts = null;
+            if (ftper.listFile(directory) != null) {
+                rts = new String[] {"0",
+                    MessageFormat.format("alive；Host[{0}]; Username[{1}]", getHost(), getUsername())};
+            } else {
+                rts = new String[] {FtperException.NOTFIND_CODE,
+                    MessageFormat.format(FtperException.NOTFIND_DESCRIPTION, getHost(), getUsername())};
+            }
+            return rts;
+        } catch (FtperException e) {
+            return new String[] {e.getCode(), e.getMessage()};
+        } finally {
+            FtperFactory.close(ftper);
+        }
+    }
 
     /**
      * 配置连接地址.
@@ -317,9 +349,24 @@ public class FtperConfig implements Serializable {
                 }
             }
 
+            // 默认 ftp 协议
+            if (ftperConfig.getProtocol() == null) {
+                ftperConfig.setProtocol(ProtocolEnum.ftp);
+            }
+
             // ftp/ftps 协议，默认类似是 apache common
             if (ftperConfig.getType() == null) {
                 ftperConfig.setType(TypeEnum.apache_common);
+            }
+
+            if (ftperConfig.getHost() == null) {
+                throw new IllegalArgumentException(TipHelper.checkParam_NonNull("host"));
+            } else if (ftperConfig.getPort() <= 0) {
+                throw new IllegalArgumentException("The config must more than zero port int.");
+            } else if (ftperConfig.getUsername() == null) {
+                throw new IllegalArgumentException(TipHelper.checkParam_NonNull("username"));
+            } else if (ftperConfig.getPassword() == null) {
+                throw new IllegalArgumentException(TipHelper.checkParam_NonNull("password"));
             }
 
             return ftperConfig;

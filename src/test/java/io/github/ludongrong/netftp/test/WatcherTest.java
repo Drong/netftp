@@ -5,10 +5,10 @@ import java.io.File;
 import java.util.stream.Collectors;
 
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import io.github.ludongrong.netftp.FtperConfig;
+import io.github.ludongrong.netftp.FtperException;
 import io.github.ludongrong.netftp.FtperFactory;
 import io.github.ludongrong.netftp.IFtper;
 import io.github.ludongrong.netftp.watche.DeleteAction;
@@ -26,30 +26,21 @@ public class WatcherTest {
 
     private String projectPath = System.getProperty("user.dir");
 
-    FtperConfig.Builder fBuilder;
-
-    @BeforeClass
-    public void beforeClass() {
-        fBuilder = new FtperConfig.Builder();
-        fBuilder.withHost("127.0.0.1");
-        fBuilder.withPort(21);
-        fBuilder.withUsername("1");
-        fBuilder.withPassword("1");
-        fBuilder.withPasvMode(true);
-        fBuilder.withProtocol(FtperConfig.ProtocolEnum.ftp);
-
-        IFtper ftper = FtperFactory.createFtper(fBuilder.build());
-
+    @Test(dataProvider = "watchTestData", dataProviderClass = TestProvider.class)
+    public void createDirectoryTest(FtperConfig ftperConfig) throws FtperException {
+        IFtper ftper = FtperFactory.createFtper(ftperConfig);
         ByteArrayInputStream byteis = new ByteArrayInputStream("test".getBytes());
         for (int i = 0; i < 10; i++) {
             boolean result = ftper.upload("/test/watcher", "test" + i + ".csv", byteis);
-            System.out.println(result);
+            Assert.assertEquals(result, true);
         }
+        FtperFactory.close(ftper);
     }
 
-    @Test
-    public void createFtpTest() {
-        IFtper ftper = FtperFactory.createFtper(fBuilder.build());
+    @Test(dependsOnMethods = {"createDirectoryTest"}, dataProvider = "watchTestData",
+        dataProviderClass = TestProvider.class)
+    public void watchTest(FtperConfig ftperConfig) throws FtperException {
+        IFtper ftper = FtperFactory.createFtper(ftperConfig);
         long count = ftper.listFile("/test/watcher").stream().filter((ftperFile) -> {
             return ftperFile.getName().contains("1");
         }).collect(Collectors.counting());
@@ -57,18 +48,17 @@ public class WatcherTest {
 
         Watched watched = new Watched(
             new Filter[] {new DirectoryFiler("/test/w*", true), new FileFiler("*1*", true), new DeleteAction()});
-        DirectoryWatcher watcher = new DirectoryWatcher(fBuilder.build(), "/test");
+        DirectoryWatcher watcher = new DirectoryWatcher(ftperConfig, "/test");
         watcher.addObserver(watched);
         watcher.hit(true);
 
-        ftper = FtperFactory.createFtper(fBuilder.build());
         count = ftper.listFile("/test/watcher").stream().filter((ftperFile) -> {
             return ftperFile.getName().contains("1");
         }).collect(Collectors.counting());
         Assert.assertEquals(count == 0, true);
 
         watched = new Watched(new Filter[] {new FileFiler("*.csv", true), new MoveAction("/test", false)});
-        watcher = new DirectoryWatcher(fBuilder.build(), "/test");
+        watcher = new DirectoryWatcher(ftperConfig, "/test");
         watcher.addObserver(watched);
         watcher.hit(true);
 
@@ -77,13 +67,13 @@ public class WatcherTest {
         Assert.assertEquals(count == 10, true);
 
         watched = new Watched(new Filter[] {new FileFiler("*0.csv", true), new DownloadAction(projectPath)});
-        watcher = new DirectoryWatcher(fBuilder.build(), "/test");
+        watcher = new DirectoryWatcher(ftperConfig, "/test");
         watcher.addObserver(watched);
         watcher.hit(true);
 
         watched = new Watched(new Filter[] {new FileFiler("*0.csv", true), new TagFilter("/test", false),
             new DownloadAction(projectPath)});
-        watcher = new DirectoryWatcher(fBuilder.build(), "/test");
+        watcher = new DirectoryWatcher(ftperConfig, "/test");
         watcher.addObserver(watched);
         watcher.hit(true);
 
@@ -93,11 +83,13 @@ public class WatcherTest {
 
         watched =
             new Watched(new Filter[] {new FileModifyTimeFilter(System.currentTimeMillis(), true), new DeleteAction()});
-        watcher = new DirectoryWatcher(fBuilder.build(), "/test");
+        watcher = new DirectoryWatcher(ftperConfig, "/test");
         watcher.addObserver(watched);
         watcher.hit(true);
 
         count = ftper.listFile("/test").stream().collect(Collectors.counting());
         Assert.assertEquals(count == 0, true);
+
+        FtperFactory.close(ftper);
     }
 }

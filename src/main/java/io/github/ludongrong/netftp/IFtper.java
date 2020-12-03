@@ -1,5 +1,6 @@
 package io.github.ludongrong.netftp;
 
+import java.io.Closeable;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.List;
  * @author <a href="mailto:736779458@qq.com">ludongrong</a>
  * @since 2020-11-27
  */
-public interface IFtper {
+public interface IFtper extends Closeable {
 
     /**
      * 获取 ftp 服务地址.
@@ -112,19 +113,16 @@ public interface IFtper {
     boolean move(String src, String sname, String dst, String dname);
 
     /**
-     * 关闭ftp连接.
-     */
-    void close();
-
-    /**
      * 克隆.
      * 
      * <p>
      * 用 ftper 自带的账号/密码重新构造个ftper.
      * 
      * @return ftp客户端
+     * @throws FtperException
+     *             初始化客户端异常
      */
-    IFtper cloneFtper();
+    IFtper cloneFtper() throws FtperException;
 
     /**
      * 搬运.

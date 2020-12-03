@@ -196,6 +196,26 @@ watcher.hit(true);
 
 
 
+## -> 检测远程服务
+
+```java
+FtperConfig conf = FtperConfig.withHost("127.0.0.1").withPort(21)
+    .withUsername("1")
+    .withPassword("1")
+    .withPasvMode(true)
+    .withProtocol(ProtocolEnum.ftp).build();
+Assert.assertEquals(conf.checkAlive("/")[0].equals("0"), true);
+```
+
+备注：返回结果数组；数组第一位表示状态，非 0 表示失败；数组第二位是描述；比如 ：
+
+```
+[0, alive；Host[127.0.0.1]; Username[1]]
+[99, Cannot find; host[127.0.0.1] user[1]]
+```
+
+
+
 ## -> 其他
 
 我们通过 “删除某目录下某文件”、“删除过期文件” 例子，看出虽然实现功能不同，但是只是变换了 Filter 和 Action。因此，我们可以通过变换 Filter 和 Action 来达到我们想要的功能。

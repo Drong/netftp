@@ -7,6 +7,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -18,6 +19,7 @@ import javax.net.ssl.X509TrustManager;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import io.github.ludongrong.netftp.util.LogHelper;
 import io.github.ludongrong.netftp.util.PathHelper;
 import it.sauronsoftware.ftp4j.FTPAbortedException;
 import it.sauronsoftware.ftp4j.FTPClient;
@@ -355,9 +357,9 @@ public class Ftp4jFtper extends AbstsactFtper {
                 sslContext = SSLContext.getInstance("SSL");
                 sslContext.init(null, trustManager, new SecureRandom());
             } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                LogHelper.getLog().error(e);
             } catch (KeyManagementException e) {
-                e.printStackTrace();
+                LogHelper.getLog().error(e);
             }
             SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
@@ -374,8 +376,10 @@ public class Ftp4jFtper extends AbstsactFtper {
          * @param ftperConfig
          *            配置
          * @return 客户端
+         * @throws FtperException
+         *             客户端异常
          */
-        public Ftp4jFtper build(FtperConfig ftperConfig) {
+        public Ftp4jFtper build(FtperConfig ftperConfig) throws FtperException {
 
             FTPClient ftpClient = null;
 
@@ -393,13 +397,15 @@ public class Ftp4jFtper extends AbstsactFtper {
             try {
                 ftpClient.connect(ftperConfig.getHost(), ftperConfig.getPort());
             } catch (IllegalStateException | IOException | FTPIllegalReplyException | FTPException e) {
-                throw new IllegalArgumentException(tip(ftperConfig) + " transfer mode exception !", e);
+                throw new FtperException(FtperException.CONNECT_CODE, MessageFormat
+                    .format(FtperException.CONNECT_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
             }
 
             try {
                 ftpClient.login(ftperConfig.getUsername(), ftperConfig.getPassword());
             } catch (IllegalStateException | IOException | FTPIllegalReplyException | FTPException e) {
-                throw new IllegalArgumentException(tip(ftperConfig) + " transfer mode exception !", e);
+                throw new FtperException(FtperException.LOGIN_CODE, MessageFormat
+                    .format(FtperException.LOGIN_DESCRIPTION, ftperConfig.getHost(), ftperConfig.getUsername()));
             }
 
             // 模式
@@ -418,17 +424,13 @@ public class Ftp4jFtper extends AbstsactFtper {
 
             return new Ftp4jFtper(ftpClient, ftperConfig);
         }
-
-        private String tip(FtperConfig ftperConfig) {
-            return "FTP host[" + ftperConfig.getHost() + "] user[" + ftperConfig.getUsername() + "] ";
-        }
     }
 
     /**
      * @see io.github.ludongrong.netftp.IFtper#cloneFtper()
      */
     @Override
-    public IFtper cloneFtper() {
+    public IFtper cloneFtper() throws FtperException {
         return new Builder().build(ftperConfig);
     }
 }

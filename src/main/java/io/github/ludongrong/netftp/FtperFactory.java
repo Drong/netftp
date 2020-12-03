@@ -1,5 +1,8 @@
 package io.github.ludongrong.netftp;
 
+import java.io.IOException;
+import java.util.Optional;
+
 /**
  * ftper 工厂.
  *
@@ -14,8 +17,10 @@ public class FtperFactory {
      * @param ftperConfig
      *            配置
      * @return 客户端
+     * @throws FtperException
+     *             客户端异常
      */
-    static public IFtper createFtper(FtperConfig ftperConfig) {
+    static public IFtper createFtper(FtperConfig ftperConfig) throws FtperException {
 
         switch (ftperConfig.getType()) {
             case apache_common:
@@ -27,5 +32,19 @@ public class FtperFactory {
             default:
                 throw new IllegalStateException("Unsupported type [" + ftperConfig.getType() + "]");
         }
+    }
+
+    /**
+     * 关闭.
+     *
+     * @param ftper
+     */
+    static public void close(IFtper ftper) {
+        Optional.ofNullable(ftper).ifPresent(t -> {
+            try {
+                t.close();
+            } catch (IOException e) {
+            }
+        });
     }
 }

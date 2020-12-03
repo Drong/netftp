@@ -1,14 +1,17 @@
 package io.github.ludongrong.netftp.watche;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Optional;
 import java.util.Stack;
 
 import io.github.ludongrong.netftp.FtperConfig;
+import io.github.ludongrong.netftp.FtperException;
 import io.github.ludongrong.netftp.FtperFactory;
 import io.github.ludongrong.netftp.FtperFile;
 import io.github.ludongrong.netftp.IFtper;
+import io.github.ludongrong.netftp.util.LogHelper;
 
 /**
  * 远程目录观察者.
@@ -41,31 +44,47 @@ public class DirectoryWatcher extends Observable {
         this.ftperConfig = ftperConfig;
     }
 
+    private List<FtperFile> listFile(IFtper ftper, String path) {
+        return Optional.ofNullable(ftper.listFile(path)).orElse(new ArrayList<FtperFile>());
+    }
+
     /**
      * 执行一次目录观察.
+     * 
+     * <p>
+     * 需要考虑执行时间长的问题.
      *
      * @param recursion
      *            递归下钻
      */
     public void hit(boolean recursion) {
 
-        IFtper ftper = FtperFactory.createFtper(ftperConfig);
+        IFtper ftper;
+        try {
+            ftper = FtperFactory.createFtper(ftperConfig);
+        } catch (FtperException e) {
+            LogHelper.getLog().error(e.getMessage());
+            return;
+        }
 
-        Stack<FtperFile> st = new Stack<FtperFile>();
-        st.addAll(Optional.ofNullable(ftper.listFile(srcPath)).orElse(new ArrayList<FtperFile>()));
+        Stack<FtperFile> stack = new Stack<FtperFile>();
+        stack.addAll(listFile(ftper, srcPath));
 
-        while (st.empty() == false) {
-            FtperFile ftperFile = st.pop();
+        try {
+            while (stack.empty() == false) {
+                FtperFile ftperFile = stack.pop();
 
-            setChanged();
-            notifyObservers(new WatcheParam(ftperFile, srcPath, ftper));
+                setChanged();
+                notifyObservers(new WatcheParam(ftperFile, srcPath, ftper));
 
-            if (recursion) {
-                if (ftperFile.isDirectory()) {
-                    st.addAll(Optional.ofNullable(ftper.listFile(ftperFile.getAbsolutePath()))
-                        .orElse(new ArrayList<FtperFile>()));
+                if (recursion) {
+                    if (ftperFile.isDirectory()) {
+                        stack.addAll(listFile(ftper, ftperFile.getAbsolutePath()));
+                    }
                 }
             }
+        } finally {
+            FtperFactory.close(ftper);
         }
     }
 }

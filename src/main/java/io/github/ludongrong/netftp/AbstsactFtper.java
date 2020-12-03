@@ -320,44 +320,8 @@ public abstract class AbstsactFtper implements IFtper {
 
         PathHelper.check(dst);
 
-        boolean res = listFunc(dst, new Proccesser<Boolean>() {
-
-            boolean result = false;
-
-            @Override
-            public boolean pre(String src, String fname, boolean exists) {
-                if (exists == false) {
-                    String dirp = FtperFile.getAbsolutePath(src, fname);
-                    exists = mkdir(dirp);
-                    if (exists == false) {
-                        LogHelper.getLog().error(">>>eee {} >>> Unable to create directory. {}", getHost(), dirp);
-                    }
-                }
-                return exists;
-            }
-
-            @Override
-            public void last(List<FtperFile> ftpFiles) {
-                FtperFile matchFile = FtperFile.matchSelector(ftpFiles, fname);
-                if (matchFile != null) {
-                    result = delete(matchFile);
-                    if (result == false) {
-                        LogHelper.getLog().error(">>>eee {} >>> Unable to delete the target file. {}", getHost(),
-                            matchFile.getAbsolutePath());
-                    }
-                } else {
-                    result = true;
-                }
-            }
-
-            @Override
-            public Boolean result() {
-                return result;
-            }
-        }).result();
-
-        if (res == false) {
-            return false;
+        if (createDirDeleteFile(dst, fname) == false) {
+            return Boolean.FALSE;
         }
 
         return put(dst, fname, is);
@@ -413,6 +377,54 @@ public abstract class AbstsactFtper implements IFtper {
     protected abstract boolean rename(FtperFile matchFile, String dst, String dname);
 
     /**
+     * 创建目录，删除文件.
+     *
+     * @param dst
+     *            目录路径
+     * @param dname
+     *            文件名
+     * @return 操作结果。true表示成功；false表示失败
+     */
+    private boolean createDirDeleteFile(String dst, String dname) {
+
+        return listFunc(dst, new Proccesser<Boolean>() {
+
+            boolean result = false;
+
+            @Override
+            public boolean pre(String src, String fname, boolean exists) {
+                if (exists == false) {
+                    String dirp = FtperFile.getAbsolutePath(src, fname);
+                    exists = mkdir(dirp);
+                    if (exists == false) {
+                        LogHelper.getLog().error(">>>eee {} >>> Unable to create directory. {}", getHost(), dirp);
+                    }
+                }
+                return exists;
+            }
+
+            @Override
+            public void last(List<FtperFile> ftpFiles) {
+                FtperFile matchFile = FtperFile.matchSelector(ftpFiles, dname);
+                if (matchFile != null) {
+                    result = delete(matchFile);
+                    if (result == false) {
+                        LogHelper.getLog().error(">>>eee {} >>> Unable to delete the target file. {}", getHost(),
+                            matchFile.getAbsolutePath());
+                    }
+                } else {
+                    result = true;
+                }
+            }
+
+            @Override
+            public Boolean result() {
+                return result;
+            }
+        }).result();
+    }
+
+    /**
      * @see io.github.ludongrong.netftp.IFtper#move(java.lang.String, java.lang.String, java.lang.String,
      *      java.lang.String)
      */
@@ -426,10 +438,7 @@ public abstract class AbstsactFtper implements IFtper {
             return Boolean.FALSE;
         }
 
-        List<FtperFile> dlist = listFile(dst);
-        if (dlist == null) {
-            LogHelper.getLog().error(">>>eee {} >>> Unable to find file. {}", getHost(),
-                FtperFile.getAbsolutePath(dst, dname));
+        if (createDirDeleteFile(dst, dname) == false) {
             return Boolean.FALSE;
         }
 
@@ -444,17 +453,7 @@ public abstract class AbstsactFtper implements IFtper {
             }
         }
 
-        FtperFile matchFile = FtperFile.matchSelector(dlist, dname);
-        if (exists(matchFile)) {
-            boolean res = delete(matchFile);
-            if (res == false) {
-                LogHelper.getLog().error(">>>eee {} >>> The destination file could not be deleted. {}", getHost(),
-                    FtperFile.getAbsolutePath(dst, dname));
-                return res;
-            }
-        }
-
-        matchFile = FtperFile.matchSelector(slist, sname);
+        FtperFile matchFile = FtperFile.matchSelector(slist, sname);
         if (exists(matchFile) == false) {
             LogHelper.getLog().error(">>>eee {} >>> The source file does not exist. {}", getHost(),
                 FtperFile.getAbsolutePath(src, sname));
@@ -476,7 +475,7 @@ public abstract class AbstsactFtper implements IFtper {
         } else if (equals(ftper)) {
             throw new IllegalArgumentException(">>>eee>>> Receive Ftper must not equals send Ftper");
         }
-        
+
         Receiver receiver = new Receiver(this, src, sname);
         Sender sender = new Sender(ftper, dest, dname);
 

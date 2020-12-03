@@ -2,7 +2,11 @@
 <suite name="Suite" parallel="false">
   <test name="Test">
     <classes>
-      <class name="org.mpro.netftp.test.CarrierTest"/>
+      <class name="io.github.ludongrong.netftp.test.FtperConfigTest"/>
+      <class name="io.github.ludongrong.netftp.test.FtperTest"/>
+      <class name="io.github.ludongrong.netftp.test.FtperFactoryTest"/>
+      <class name="io.github.ludongrong.netftp.test.WatcherTest"/>
+      <class name="io.github.ludongrong.netftp.test.util.PathHelperTest"/>
     </classes>
   </test> <!-- Test -->
 </suite> <!-- Suite -->
