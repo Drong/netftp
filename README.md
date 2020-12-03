@@ -15,7 +15,7 @@ netftp 是对 \[apache common net\]、 [ftp4j](https://github.com/asbachb/ftp4j)
 <dependency>
   <groupId>io.github.ludongrong</groupId>
   <artifactId>netftp</artifactId>
-  <version>1.1.1</version>
+  <version>1.1.3</version>
 </dependency>
 ```
 
@@ -24,14 +24,14 @@ netftp 是对 \[apache common net\]、 [ftp4j](https://github.com/asbachb/ftp4j)
 ## -> Gradle
 
 ```
-compile 'io.github.ludongrong:netftp:1.1.1'
+compile 'io.github.ludongrong:netftp:1.1.3'
 ```
 
 
 
 # 使用步骤
 
-## -> 构建 ftpConfig
+## 第一步：构建 ftpConfig
 
 ftpConfig 是 ftper 的配置类。必须配置 Host（地址）、Port（端口）、Username（用户名）、Password（密码）、Protocol（协议）。ftp 协议默认被动模式。
 
@@ -88,7 +88,7 @@ FtperConfig ftperConfig = FtperConfig.withHost("127.0.0.1")
 
 
 
-## -> 构建 ftper
+## 第二步：构建 ftper
 
 ```java
 IFtper ftper = FtperFactory.createFtper(ftperConfig);
@@ -96,7 +96,7 @@ IFtper ftper = FtperFactory.createFtper(ftperConfig);
 
 
 
-## -> 使用 ftper
+## 第三步：使用 ftper
 
 ```java
 // 创建目录
@@ -108,6 +108,8 @@ ftper.down("/test/dir2", "test.csv", byteos));
 // 迁移
 ftper.move("/test/dir2", "test.csv", "/test/dir1", "test.txt");
 ```
+
+
 
 ### -> 删除
 
