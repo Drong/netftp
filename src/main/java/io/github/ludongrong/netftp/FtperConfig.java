@@ -92,6 +92,8 @@ public class FtperConfig implements Serializable {
      * <p>
      * 返回结果数组{@code return new String[] {"0", "alive"}}}，第一个表示状态，第二个表示状态描述.
      *
+     * @param directory
+     *            目录
      * @return [状态, 状态描述]
      */
     public String[] checkAlive(String directory) {

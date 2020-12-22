@@ -36,8 +36,9 @@ public class FtperFactory {
 
     /**
      * 关闭.
-     *
+     * 
      * @param ftper
+     *            客户端
      */
     static public void close(IFtper ftper) {
         Optional.ofNullable(ftper).ifPresent(t -> {

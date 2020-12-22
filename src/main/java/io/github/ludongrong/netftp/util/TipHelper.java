@@ -2,9 +2,6 @@ package io.github.ludongrong.netftp.util;
 
 import java.text.MessageFormat;
 
-import cn.hutool.log.Log;
-import cn.hutool.log.LogFactory;
-
 /**
  * 提示.
  *
@@ -16,6 +13,8 @@ public class TipHelper {
     /**
      * 获取日志对象.
      *
+     * @param param
+     *            参数名称
      * @return 日志对象
      */
     public static String checkParam_NonNull(String param) {

@@ -287,6 +287,8 @@ public class JschFtper extends AbstsactFtper {
          * @param ftperConfig
          *            配置
          * @return 客户端
+         * @throws FtperException
+         *             异常
          */
         public JschFtper build(FtperConfig ftperConfig) throws FtperException {
 

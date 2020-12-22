@@ -130,8 +130,6 @@ public interface IFtper extends Closeable {
      * <p>
      * 把 A 服务器上的文件搬运到 B 服务器上.
      * 
-     * <p>
-     * 
      * <pre>
      * {
      *     &#64;code
