@@ -88,6 +88,39 @@ FtperConfig ftperConfig = FtperConfig.withHost("127.0.0.1")
 
 
 
+### 释放资源
+
+```java
+ConfigFtp configFtp = ConfigFtp.host("127.0.0.1").port(21)
+    .username("1")
+    .password("1")
+    .passiveMode(true).build();
+
+Ftper ftper = configFtp.createFtper()
+try {
+    ftper.checkDirectory("/test");
+} finally {
+    FtperUtil.close(ftper);
+}
+```
+
+或
+
+```java
+ConfigFtp configFtp = ConfigFtp.host("127.0.0.1").port(21)
+		.username("1")
+		.password("1")
+		.passiveMode(true).build();
+
+try (Ftper ftper = configFtp.createFtper()) {
+    ftper.checkDirectory("/test");
+} catch (Exception e) {
+	e.printStackTrace();
+}
+```
+
+
+
 ## 第二步：构建 ftper
 
 ```java
@@ -98,14 +131,98 @@ IFtper ftper = FtperFactory.createFtper(ftperConfig);
 
 ## 第三步：使用 ftper
 
+### 检测
+
 ```java
+String[] results = configFtp.checkAlive("/");
+if(results[0].equals("0")) {
+	System.out.println("alive");
+}
+Arrays.toString(results);
+```
+
+
+
+### 创建
+
+```java
+// 创建文件
+ftper.createFile("/test/dir1");
 // 创建目录
 ftper.createDirectory("/test/dir1");
-// 上传
-ftper.upload("/test/dir2", "test.csv", byteis);
-// 下载
-ftper.down("/test/dir2", "test.csv", byteos));
-// 迁移
+```
+
+
+
+### 上传
+
+```java
+ftper.uploadFile("/test/dir2", "test.csv", byteis);
+ftper.uploadFile("/test/dir2/test.csv", byteis);
+```
+
+
+
+上传整个目录
+
+```java
+ConfigFtp configFtp = ConfigFtp.host("127.0.0.1").port(21)
+		.username("1")
+		.password("1")
+		.passiveMode(true).build();
+
+try (Ftper ftper = configFtp.createFtper()) {
+	LocalDirectoryWatcher watcher = new LocalDirectoryWatcher("/test");
+	watcher.addObserver(new Watch(new Filter[]{new FileFiler("*0.csv", true),
+			new CarryFilter(ftper, "upload", true)}));
+	watcher.hit(true);
+} catch (Exception e) {
+	e.printStackTrace();
+}
+```
+
+
+
+### 下载
+
+```
+ftper.downFile("/test/dir2", "test.csv", byteos));
+ftper.downFile("/test/dir2/test.csv", byteos));
+```
+
+
+
+下载整个目录
+
+```java
+Watch watch = new Watch(new Filter[] {new FileFiler("*0.csv", true),
+	new DownloadAction(localPath)});
+watcher = new DirectoryWatcher(ftperConfig, "/test");
+watcher.addObserver(watch);
+watcher.hit(true);
+```
+
+
+
+多次下载整个目录，避免下载重复文件
+
+```java
+TagFilter tagCheckFilter = new TagFilter("/test", false);
+
+Watch watch = new Watch(new Filter[]{new FileFiler("*0.csv", true),
+		tagCheckFilter,
+		new DownloadAction(projectPath),
+		tagCheckFilter.incubateAction()});
+watcher = new DirectoryWatcher(ftperConfig, "/test");
+watcher.addObserver(watch);
+watcher.hit(true);
+```
+
+
+
+### 迁移
+
+```java
 ftper.move("/test/dir2", "test.csv", "/test/dir1", "test.txt");
 ```
 
@@ -251,6 +368,31 @@ Watched watched = new Watched(new Filter[] {
 
 DirectoryWatcher watcher = new DirectoryWatcher(ftpConfig, "/test");
 watcher.addObserver(watched);
+watcher.hit(true);
+```
+
+
+
+## ftp服务文件搬运到另一个ftp服务
+
+### 搬运文件
+
+```java
+IFtper sendFtper = sendConfig.createFtper();;
+receiveFtper.carry(sendFtper, "/test", "1.csv", "/test", "2.csv");
+```
+
+
+
+### 搬运目录
+
+```java
+Watch watch = new Watch(
+    new Filter[] {
+        new FileFiler("*.csv", true),
+        new CarryAction(ftper.cloneFtper(),"/carry", true)});
+DirectoryWatcher watcher = new DirectoryWatcher(ftperConfig, "/test");
+watcher.addObserver(watch);
 watcher.hit(true);
 ```
 
